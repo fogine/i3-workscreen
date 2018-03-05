@@ -13,6 +13,12 @@ Installation:
     
     /home/user> pip install https://github.com/fogine/i3-workscreen
 
+DEPENDENCIES:
+-------------
+* ``i3-msg``
+* ``xrandr`` (xlib)
+* ``python 3.5``
+* ``logger`` (write messages into the system log)
 
 Configuration:
 --------------
