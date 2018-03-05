@@ -1,4 +1,4 @@
-This utility is targeted to users using i3wm on their laptops who frequently jump between multiple (multi-)monitor setups.  
+This utility is for users using i3wm on their laptops who frequently jump between multiple (multi-)monitor setups.  
 
 For example single display output when you are on road, triple-monitor setup at work and two-monitor setup at home.
 
