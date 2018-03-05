@@ -2,7 +2,7 @@ This utility is for users using i3wm on their laptops who frequently jump betwee
 
 For example single display output when you are on road, triple-monitor setup at work and two-monitor setup at home.
 
-``i3-workscreen`` executable should be triggered by ``udev`` rule which will listen for specific events caused by plugging/unplugging display output cable(s) (eg.: ``HDMI``). The utility will then reassign existing workspaces based on your ``json`` configuration.
+``i3-workscreen`` executable provided by this package should be triggered by ``udev`` rule which will listen for specific events caused by plugging/unplugging display output cable(s) (eg.: ``HDMI``). The utility will then enable configured display outputs and reassign existing workspaces based on your ``json`` configuration.
 
 An example of the ``udev`` rule is provided in the root of the git repository and should be EDITED by the user and copied to ``/etc/udev/rules.d/98-monitor-hotplug.rules`` on you system.
 
