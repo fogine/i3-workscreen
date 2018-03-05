@@ -122,8 +122,6 @@ def main():
     connectedOutputWorkspaces = []
     #i3 multi command string which will bind workspaces to correct display outputs
     i3cmd = ''
-    print(outputs)
-    return False
 
     for output in outputs:
         outputConf = next(
