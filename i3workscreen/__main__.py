@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import os
+import sys
 import json
 import subprocess
+from jsonschema import validate
+from validationschema import schema
 
 from Xlib import X, display, Xutil
 from Xlib.ext import randr
@@ -13,10 +16,19 @@ CONFIG = os.path.join(HOME, '.config', 'i3-workscreen', 'config.json')
 i3 = i3ipc.Connection()
 d = display.Display()
 
+def logger(message):
+    """Writes the message into the linux system log
+
+    :message: string
+    """
+    message = '[i3-workscreen] ' + message
+    sys.stderr.write(message)
+    subprocess.run(args=['logger', message], check=True)
+
 def get_outputs(display):
     """Get collection of display outputs
-    :returns: array of display output objects
 
+    :returns: array of display output objects
     """
     root = display.screen().root
     resources = root.xrandr_get_screen_resources()._data
@@ -28,7 +40,8 @@ def get_outputs(display):
 
         outputs.append({
             'name': _data['name'],
-            'connected': not _data['connection']
+            'connected': not _data['connection'],
+            'dissabled': not _data['crtc']
         });
 
     return outputs
@@ -49,9 +62,14 @@ def get_config(path):
     }
 
     """
-    with open(path, 'r') as file:
-        dict = json.loads(file.read())
-    return dict
+    try:
+        with open(path, 'r') as file:
+            dict = json.loads(file.read())
+            validate(dict, schema)
+    except FileNotFoundError:
+        raise RuntimeError('Missing required config.json at {0}'.format(path))
+    else:
+        return dict
 
 def difference(list, *lists):
     """construct a collection with values of first list argument which are not
@@ -75,7 +93,25 @@ def createi3CmdString(outputName, workspaces):
         cmd += 'workspace {0}; move workspace to output {1}; '.format(workspace, outputName)
     return cmd
 
+def getBuiltInDisplayOutputName(outputs):
+    """detects built-in laptop display output.
+    returns first active output name whose name starts either with `eDP` or `LVDS`
+    TODO: do you know a better method of detecting this
+    (other than manual configuration), let me know please!
+
+    :outputs: array<object>
+    :returns: string
+
+    """
+    for output in outputs:
+        if output['name'].startswith('eDP') or output['name'].startswith('LVDS'):
+            return output['name']
+
 def main():
+    # Check for extension
+    if not d.has_extension('RANDR'):
+        raise RuntimeError('server does not have the RANDR extension')
+
     #xrandr outputs (like HDMI-1, DP-1 etc..)
     outputs = get_outputs(d)
     #identifier of currently focues i3 workspace
@@ -86,6 +122,8 @@ def main():
     connectedOutputWorkspaces = []
     #i3 multi command string which will bind workspaces to correct display outputs
     i3cmd = ''
+    print(outputs)
+    return False
 
     for output in outputs:
         outputConf = next(
@@ -107,6 +145,8 @@ def main():
             connectedOutputs.insert(index, output)
             if 'workspaces' in output:
                 connectedOutputWorkspaces.insert(index, output['workspaces'])
+
+    builtInDisplayOutput = getBuiltInDisplayOutputName(connectedOutputs)
 
     for index,output in enumerate(connectedOutputs):
         #TODO find out how to do the same thing with Xlib
@@ -141,4 +181,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        logger(str(e))
+        sys.exit(1);

@@ -61,7 +61,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['python-xlib', 'i3ipc'],
+    install_requires=['python-xlib', 'i3ipc', 'jsonschema'],
 
     # The following would provide a command called `i3-workscreen` which
     # executes the function `main` from this package when invoked:
