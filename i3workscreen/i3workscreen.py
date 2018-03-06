@@ -3,13 +3,13 @@ import os
 import sys
 import json
 import subprocess
-from jsonschema import validate
-from validationschema import schema
+import i3ipc
 
+from jsonschema import validate
 from Xlib import X, display, Xutil
 from Xlib.ext import randr
 
-import i3ipc
+from i3workscreen.validationschema import schema
 
 HOME = os.environ.get('HOME')
 CONFIG = os.path.join(HOME, '.config', 'i3-workscreen', 'config.json')

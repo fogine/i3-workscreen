@@ -66,7 +66,7 @@ setup(
     # The following would provide a command called `i3-workscreen` which
     # executes the function `main` from this package when invoked:
    entry_points = {
-        'console_scripts': ['i3-workscreen = i3workscreen.__main__:main'],
+        'console_scripts': ['i3-workscreen = i3workscreen.i3workscreen:main'],
     },
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/pypa/sampleproject/issues',
