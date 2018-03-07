@@ -28,16 +28,17 @@ Configuration:
 
 .. code-block:: bash
     
+    
     /home/user> i3-workscreen -h
 
     usage: i3workscreen.py [-h] [--toggle]
 
+    Required configuration file is fetched from:
+    `$HOME/.config/i3-workscreen/config.json`
+
     optional arguments:
       -h, --help  show this help message and exit
       --toggle    Toggles between mirrored & extended display mode
-
-
-``i3-workscreen`` fetches configuration from ``$HOME/.config/i3-workscreen/config.json``.  
 
 The bellow configuration example shows setup of maximum of three monitors. In this case ``eDP-1`` is my laptop screen and ``HDMI-1`` & ``DP-1`` are external monitors.
 

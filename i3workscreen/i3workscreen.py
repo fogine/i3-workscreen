@@ -121,7 +121,8 @@ def areDisplayOutputsCloned(outputs):
     return True
 
 def getShellArgs():
-    parser=argparse.ArgumentParser()
+    parser=argparse.ArgumentParser(
+            description='Required configuration file is fetched from: `$HOME/.config/i3-workscreen/config.json`')
     parser.add_argument('--toggle', action='store_true', help='Toggles between mirrored & extended display mode')
     return parser.parse_args()
 
