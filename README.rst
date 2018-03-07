@@ -13,6 +13,14 @@ Installation:
     
     /home/user> pip install https://github.com/fogine/i3-workscreen
 
+    /home/user> i3-workscreen -h
+
+    usage: i3workscreen.py [-h] [--toggle]
+
+    optional arguments:
+      -h, --help  show this help message and exit
+      --toggle    Toggles between mirrored & extended display mode
+
 Dependencies:
 -------------
 * ``i3-msg``
