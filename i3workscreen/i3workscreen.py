@@ -253,6 +253,5 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        # logger(str(e))
-        raise e
+        logger(str(e))
         sys.exit(1);
