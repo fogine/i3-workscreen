@@ -15,15 +15,6 @@ Installation:
 
 
 
-.. code-block:: bash
-    
-    /home/user> i3-workscreen -h
-    usage: i3workscreen.py [-h] [--toggle]
-
-    optional arguments:
-      -h, --help  show this help message and exit
-      --toggle    Toggles between mirrored & extended display mode
-
 Dependencies:
 -------------
 * ``i3-msg``
@@ -32,7 +23,19 @@ Dependencies:
 * ``logger`` (write messages into the system log)
 
 Configuration:
+
 --------------
+
+.. code-block:: bash
+    
+    /home/user> i3-workscreen -h
+
+    usage: i3workscreen.py [-h] [--toggle]
+
+    optional arguments:
+      -h, --help  show this help message and exit
+      --toggle    Toggles between mirrored & extended display mode
+
 
 ``i3-workscreen`` fetches configuration from ``$HOME/.config/i3-workscreen/config.json``.  
 
