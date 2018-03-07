@@ -23,8 +23,8 @@ Dependencies:
 * ``logger`` (write messages into the system log)
 
 Configuration:
-
 --------------
+
 
 .. code-block:: bash
     
