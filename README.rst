@@ -16,6 +16,7 @@ Installation:
 
 
 .. code-block:: bash
+    
     /home/user> i3-workscreen -h
     usage: i3workscreen.py [-h] [--toggle]
 
