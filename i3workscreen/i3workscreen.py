@@ -235,7 +235,6 @@ def main():
 
     if shellArgs.toggle:
         if len(connectedOutputs) > 1 and not areDisplayOutputsCloned(connectedOutputs):
-            print(xrandr['cloned'])
             args += xrandr['cloned'] + xrandr['disabled']
         elif len(connectedOutputs) > 1:
             args += xrandr['extended'] + xrandr['disabled']
