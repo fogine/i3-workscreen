@@ -74,13 +74,9 @@ def get_config(path):
     }
 
     """
-    try:
-        with open(path, 'r') as file:
-            dict = json.loads(file.read())
-            validate(dict, schema)
-    except FileNotFoundError:
-        raise Exception('Missing required config.json at {0}'.format(path))
-    else:
+    with open(path, 'r') as file:
+        dict = json.loads(file.read())
+        validate(dict, schema)
         return dict
 
 def difference(list, *lists):
@@ -156,6 +152,11 @@ def main():
     if not d.has_extension('RANDR'):
         raise Exception('server does not have the RANDR extension')
 
+    try:
+        config = get_config(CONFIG)
+    except FileNotFoundError:
+        logger('No configuration file found at {0}'.format(CONFIG))
+        return
     shellArgs=getShellArgs()
     #xrandr outputs (like HDMI-1, DP-1 etc..)
     outputs = get_outputs(d)
@@ -163,7 +164,6 @@ def main():
     focusedWorkspace = i3.get_tree().find_focused().workspace().name
     #tried to identify opitonal laptop display output
     builtInOutput = getBuiltInDisplayOutput(outputs)
-    config = get_config(CONFIG)
     xrandr = {
         'cloned': [],
         'extended': [],
