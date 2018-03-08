@@ -79,7 +79,7 @@ def get_config(path):
             dict = json.loads(file.read())
             validate(dict, schema)
     except FileNotFoundError:
-        raise RuntimeError('Missing required config.json at {0}'.format(path))
+        raise Exception('Missing required config.json at {0}'.format(path))
     else:
         return dict
 
@@ -154,7 +154,7 @@ def getBuiltInDisplayOutput(outputs):
 def main():
     # Check for extension
     if not d.has_extension('RANDR'):
-        raise RuntimeError('server does not have the RANDR extension')
+        raise Exception('server does not have the RANDR extension')
 
     shellArgs=getShellArgs()
     #xrandr outputs (like HDMI-1, DP-1 etc..)
