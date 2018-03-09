@@ -11,7 +11,7 @@ Installation:
 
 .. code-block:: bash
     
-    /home/user> pip install https://github.com/fogine/i3-workscreen
+    /home/user> pip install git+https://github.com/fogine/i3-workscreen.git
 
 
 
