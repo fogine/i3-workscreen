@@ -167,8 +167,6 @@ def main():
     xrandr = {
         'cloned': [],
         'extended': [],
-        'laptop_disabled': [],
-        'other_disabled': [],
         'disabled': []
     }
     connectedOutputs = []
@@ -202,17 +200,14 @@ def main():
     outputCloneCandidate = getCloneCandidate(connectedOutputs)
 
     for index,output in enumerate(connectedOutputs):
-        #TODO find out how to do the same thing with Xlib
-        #witout spawning a shell process?
         xrandr['extended'] += ['--output', output['name'], '--auto']
         xrandr['cloned'] += xrandr['extended'][:]
 
         if output['name'] != outputCloneCandidate['name']:
             xrandr['cloned'] += ['--same-as', outputCloneCandidate['name']]
-        # xrandr = ['xrandr', '--output', output['name'], '--auto']
+
         if 'xrandr' in output:
             xrandr['extended'] += output['xrandr']
-        # subprocess.run(args=xrandr, check=True)
 
         try:
             nextOutput = connectedOutputs[index + 1]
@@ -226,8 +221,6 @@ def main():
     for output in outputs:
         if (not output['connected']  or
            (output['connected'] and not len(output['workspaces']) and config['disableEmptyOutputs'])):
-            #TODO find out how to do the same thing with Xlib
-            #witout spawning a shell process?
             xrandr['disabled'] += ['--output', output['name'], '--off']
 
 
@@ -241,6 +234,8 @@ def main():
     else:
         args += xrandr['extended'] + xrandr['disabled']
 
+    #TODO find out how to do the same thing with Xlib
+    #witout spawning a shell process?
     subprocess.run(args=args, check=True) #xrandr
     i3.command(i3cmd)
     i3.command('workspace {0}'.format(focusedWorkspace))
