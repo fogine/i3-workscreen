@@ -132,21 +132,6 @@ def getCloneCandidate(outputs):
 
     return outputs[0]
 
-def getBuiltInDisplayOutput(outputs):
-    """detects built-in laptop display output.
-    returns first active output whose name starts either with `eDP` or `LVDS`
-
-    :outputs: array<object>
-    :returns: string
-
-    """
-    #TODO: do you know a better method of detecting this
-    #(other than manual configuration), let me know please!
-    for output in outputs:
-        if output['name'].startswith('eDP') or output['name'].startswith('LVDS'):
-            return output
-    return None
-
 def main():
     # Check for extension
     if not d.has_extension('RANDR'):
@@ -162,8 +147,6 @@ def main():
     outputs = get_outputs(d)
     #identifier of currently focues i3 workspace
     focusedWorkspace = i3.get_tree().find_focused().workspace().name
-    #tried to identify opitonal laptop display output
-    builtInOutput = getBuiltInDisplayOutput(outputs)
     xrandr = {
         'cloned': [],
         'extended': [],
