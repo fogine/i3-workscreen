@@ -126,11 +126,17 @@ def getCloneCandidate(outputs):
     """
     :returns single connected & enabled display output which will be cloned
     """
-    for output in outputs:
+    index = None
+    for i,output in enumerate(outputs):
+        if output and index is None:
+            index = i
         if output['isPrimary']:
             return output
 
-    return outputs[0]
+    if index is None:
+        raise Exception('No connected display outputs detected.')
+
+    return outputs[index]
 
 def main():
     # Check for extension
