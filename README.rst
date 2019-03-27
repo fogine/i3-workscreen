@@ -8,7 +8,9 @@ An example of the ``udev`` rule is provided in the root of the git repository an
 
 You may also need to execute ``i3-workscreen`` in your ``.i3/config`` as the ``udev`` event is emitted way too early on a system startup before the ``X.org`` server is running.  
 
-> exec --no-startup-id "i3-workscreen"
+.. code-block:: bash
+    
+    exec --no-startup-id "i3-workscreen"
 
 Installation:
 -------------
