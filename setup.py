@@ -16,7 +16,7 @@ setup(
 
     # Versions should comply with PEP 440:
     # https://www.python.org/dev/peps/pep-0440/
-    version='0.1',  # Required
+    version='1.0.0',  # Required
 
     description='i3wm - assign workspaces to correct display outputs based on multi-scenario multi-monitor configuration',  # Required
 
