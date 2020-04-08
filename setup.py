@@ -34,6 +34,7 @@ setup(
 
     author='fogine',  # Optional
     license='MIT',
+    python_requires='>=3.5.0',
     # Classifiers help users find your project by categorizing it.
     #
     # For a list of valid classifiers, see
@@ -72,4 +73,5 @@ setup(
         'Bug Reports': 'https://github.com/pypa/sampleproject/issues',
         'Source': 'https://github.com/fogine/i3-workscreen',
     },
+    download_url='https://github.com/fogine/i3-workscreen/archive/1.0.0.tar.gz'
 )
