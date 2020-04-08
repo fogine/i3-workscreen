@@ -4,7 +4,13 @@ For example single display output when you are on road, triple-monitor setup at 
 
 ``i3-workscreen`` executable provided by this package should be triggered by ``udev`` rule which will listen for specific events caused by plugging/unplugging display output cable(s) (eg.: ``HDMI``). The utility will then enable configured display outputs and reassign existing workspaces based on your ``json`` configuration.
 
-An example of the ``udev`` rule is provided in the root of the git repository and should be EDITED by the user and copied to ``/etc/udev/rules.d/98-monitor-hotplug.rules`` on you system.
+An example of the ``udev`` rule is provided in the root of the git repository and should be EDITED by the user and copied to ``/etc/udev/rules.d/98-monitor-hotplug.rules`` on you system.  
+
+You may also need to execute ``i3-workscreen`` in your ``.i3/config`` as the ``udev`` event is emitted way too early on a system startup before the ``X.org`` server is running.  
+
+.. code-block:: bash
+    
+    exec --no-startup-id "i3-workscreen"
 
 Installation:
 -------------
@@ -12,6 +18,10 @@ Installation:
 .. code-block:: bash
     
     /home/user> pip install git+https://github.com/fogine/i3-workscreen.git
+
+    # or
+
+    /home/user> pip install i3-workscreen
 
 
 

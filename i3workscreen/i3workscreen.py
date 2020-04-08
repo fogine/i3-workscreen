@@ -126,26 +126,17 @@ def getCloneCandidate(outputs):
     """
     :returns single connected & enabled display output which will be cloned
     """
-    for output in outputs:
+    index = None
+    for i,output in enumerate(outputs):
+        if output and index is None:
+            index = i
         if output['isPrimary']:
             return output
 
-    return outputs[0]
+    if index is None:
+        raise Exception('No connected display outputs detected.')
 
-def getBuiltInDisplayOutput(outputs):
-    """detects built-in laptop display output.
-    returns first active output whose name starts either with `eDP` or `LVDS`
-
-    :outputs: array<object>
-    :returns: string
-
-    """
-    #TODO: do you know a better method of detecting this
-    #(other than manual configuration), let me know please!
-    for output in outputs:
-        if output['name'].startswith('eDP') or output['name'].startswith('LVDS'):
-            return output
-    return None
+    return outputs[index]
 
 def main():
     # Check for extension
@@ -162,8 +153,6 @@ def main():
     outputs = get_outputs(d)
     #identifier of currently focues i3 workspace
     focusedWorkspace = i3.get_tree().find_focused().workspace().name
-    #tried to identify opitonal laptop display output
-    builtInOutput = getBuiltInDisplayOutput(outputs)
     xrandr = {
         'cloned': [],
         'extended': [],
