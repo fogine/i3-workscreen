@@ -16,7 +16,7 @@ setup(
 
     # Versions should comply with PEP 440:
     # https://www.python.org/dev/peps/pep-0440/
-    version='1.0.0',  # Required
+    version='1.0.1',  # Required
 
     description='i3wm - assign workspaces to correct display outputs based on multi-scenario multi-monitor configuration',  # Required
 
@@ -73,5 +73,5 @@ setup(
         'Bug Reports': 'https://github.com/pypa/sampleproject/issues',
         'Source': 'https://github.com/fogine/i3-workscreen',
     },
-    download_url='https://github.com/fogine/i3-workscreen/archive/1.0.0.tar.gz'
+    download_url='https://github.com/fogine/i3-workscreen/archive/1.0.1.tar.gz'
 )
