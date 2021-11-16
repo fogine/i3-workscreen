@@ -95,6 +95,19 @@ def difference(list, *lists):
             out.append(item)
     return out
 
+def getVisibleWorkspaces():
+    """returns hash of outputs and their visible(active) workspaces
+
+    :returns: {
+        output<string>: workspace<string>,
+    }
+    """
+    output = {}
+    for workspace in i3.get_workspaces():
+        if workspace.visible and not workspace.output in output:
+            output[workspace.output] = workspace.name
+    return output
+
 def createi3CmdString(outputName, workspaces):
     cmd = ''
     for workspace in workspaces:
@@ -153,6 +166,9 @@ def main():
     outputs = get_outputs(d)
     #identifier of currently focues i3 workspace
     focusedWorkspace = i3.get_tree().find_focused().workspace().name
+    #dictionary of connected outputs and their current workspace name
+    activeWorkspaces = getVisibleWorkspaces()
+    isFocusedWorkspaceLost = True
     xrandr = {
         'cloned': [],
         'extended': [],
@@ -198,6 +214,9 @@ def main():
         if 'xrandr' in output:
             xrandr['extended'] += output['xrandr']
 
+        if focusedWorkspace in output['workspaces']:
+            isFocusedWorkspaceLost = False
+
         try:
             nextOutput = connectedOutputs[index + 1]
         except IndexError:
@@ -223,10 +242,19 @@ def main():
     else:
         args += xrandr['extended'] + xrandr['disabled']
 
+
+    if isFocusedWorkspaceLost:
+        for key, value in activeWorkspaces.items():
+            if value != focusedWorkspace:
+                focusedWorkspace = value
+                break
+
     #TODO find out how to do the same thing with Xlib
     #witout spawning a shell process?
     subprocess.run(args=args, check=True) #xrandr
     i3.command(i3cmd)
+    for key, value in activeWorkspaces.items():
+        i3.command('workspace {0}'.format(value))
     i3.command('workspace {0}'.format(focusedWorkspace))
 
 
