@@ -95,9 +95,8 @@ def difference(list, *lists):
             out.append(item)
     return out
 
-def getVisibleWorkspaces():
+def getVisibleWorkspacesPerOutput():
     """returns hash of outputs and their visible(active) workspaces
-
     :returns: {
         output<string>: workspace<string>,
     }
@@ -107,6 +106,24 @@ def getVisibleWorkspaces():
         if workspace.visible and not workspace.output in output:
             output[workspace.output] = workspace.name
     return output
+
+def getWorkspaceWithWindowPerOutput():
+    """returns hash of outputs and their visible(active) workspaces
+
+    :returns: {
+        output<string>: workspace<string>,
+    }
+    """
+    out = {}
+
+    for con in i3.get_tree().leaves():
+        if con.type == 'con':
+            output = con.workspace().ipc_data['output']
+            workspaceName = con.workspace().name
+            if not output in out:
+                out[output] = workspaceName
+
+    return out
 
 def createi3CmdString(outputName, workspaces):
     cmd = ''
@@ -167,7 +184,7 @@ def main():
     #identifier of currently focues i3 workspace
     focusedWorkspace = i3.get_tree().find_focused().workspace().name
     #dictionary of connected outputs and their current workspace name
-    activeWorkspaces = getVisibleWorkspaces()
+    visibleWorkspaces = getVisibleWorkspacesPerOutput()
     isFocusedWorkspaceLost = True
     xrandr = {
         'cloned': [],
@@ -244,7 +261,7 @@ def main():
 
 
     if isFocusedWorkspaceLost:
-        for key, value in activeWorkspaces.items():
+        for key, value in visibleWorkspaces.items():
             if value != focusedWorkspace:
                 focusedWorkspace = value
                 break
@@ -253,8 +270,25 @@ def main():
     #witout spawning a shell process?
     subprocess.run(args=args, check=True) #xrandr
     i3.command(i3cmd)
-    for key, value in activeWorkspaces.items():
-        i3.command('workspace {0}'.format(value))
+
+    activeWorkspaces = getWorkspaceWithWindowPerOutput()
+
+    for output in connectedOutputs:
+        outputConf = next(
+            filter(lambda o: o['name'] == output['name'], config['outputs']),
+            {}
+        )
+        activeWorkspace = activeWorkspaces[output['name']]
+        visibleWorkspace = visibleWorkspaces.get(output['name'], activeWorkspace)
+        # if the workspace should be in the current output
+        # set it as the active workspace
+        if visibleWorkspace in outputConf['workspaces']:
+            i3.command('workspace {0}'.format(visibleWorkspace))
+        #else set as the active workspace first workspace which belongs to the output
+        #and has any window in it
+        else:
+            i3.command('workspace {0}'.format(activeWorkspace))
+
     i3.command('workspace {0}'.format(focusedWorkspace))
 
 
