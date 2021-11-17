@@ -274,6 +274,11 @@ def main():
     activeWorkspaces = getWorkspaceWithWindowPerOutput()
 
     for output in connectedOutputs:
+        # output does not have any workspace
+        #aka. output was stolen all workspaces by higher priority outputs
+        if not len(output['workspaces']):
+            continue
+
         outputConf = next(
             filter(lambda o: o['name'] == output['name'], config['outputs']),
             {}
