@@ -88,3 +88,38 @@ Four scenarios may happen with the configuration:
             }
         ]
     }
+
+Matching monitors by EDID
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Output names of monitors connected through a dock or daisy-chained via DisplayPort MST (eg.: ``DP-7``) are allocated dynamically and may change after the monitors or the computer are power-cycled. Such monitors can be matched by their ``EDID`` identification instead of the output name. An entry with ``edid`` matches the connected monitor whose ``model`` and/or ``serial`` equal the given values, regardless of the output it is connected to. Each entry matches one monitor at most, so two identical monitors without a ``serial`` are assigned to two entries in the configuration order.
+
+List the model and serial of connected monitors with:
+
+.. code-block:: bash
+
+    /home/user> python -c 'from i3workscreen.i3workscreen import d, get_outputs; [print(o["name"], o["edid"]) for o in get_outputs(d) if o["connected"]]'
+
+An ``xrandr`` argument of the form ``{reference}`` is replaced with the current output name of the connected monitor whose output name, ``EDID`` model or ``EDID`` serial equals ``reference``. When no connected monitor matches, the argument is dropped together with the option preceding it.
+
+.. code-block:: json
+
+    {
+        "disableEmptyOutputs": true,
+        "outputs": [
+            {
+                "name": "eDP-1",
+                "workspaces": [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" ]
+            },
+            {
+                "edid": { "model": "DELL P2423DE", "serial": "CNSVNR3" },
+                "xrandr": ["--right-of", "eDP-1"],
+                "workspaces": ["1", "2", "3", "4", "5"]
+            },
+            {
+                "edid": { "serial": "4Y9NL23" },
+                "xrandr": ["--right-of", "{CNSVNR3}"],
+                "workspaces": ["6", "7", "8", "9", "0"]
+            }
+        ]
+    }

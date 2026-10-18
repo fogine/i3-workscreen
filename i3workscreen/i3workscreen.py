@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import os
+import re
 import sys
 import json
 import subprocess
@@ -25,6 +26,56 @@ def logger(message):
     message = '[i3-workscreen] ' + message
     sys.stderr.write(message)
     subprocess.run(args=['logger', message], check=True)
+
+def edid_descriptor_text(block):
+    """decodes the text of an EDID display descriptor
+
+    :block: bytes (18 bytes long)
+    :returns: string
+    """
+    return block[5:18].split(b'\n')[0].decode('ascii', 'replace').strip()
+
+def parse_edid(edid):
+    """extracts monitor identification from raw EDID data
+
+    :edid: bytes
+    :returns: {
+        model: string|None,
+        serial: string|None
+    }
+    """
+    out = {'model': None, 'serial': None}
+
+    if len(edid) < 128:
+        return out
+
+    for offset in range(54, 126, 18):
+        block = edid[offset:offset + 18]
+        # display descriptors start with three zero bytes, byte 3 is the tag
+        if block[0:3] != b'\x00\x00\x00':
+            continue
+        if block[3] == 0xFC:
+            out['model'] = edid_descriptor_text(block)
+        elif block[3] == 0xFF:
+            out['serial'] = edid_descriptor_text(block)
+
+    # fall back to the numeric serial number when no serial descriptor exists
+    if not out['serial']:
+        serial = int.from_bytes(edid[12:16], 'little')
+        if serial:
+            out['serial'] = str(serial)
+
+    return out
+
+def get_edid(display, output):
+    """fetches raw EDID data of a display output
+
+    :returns: bytes
+    """
+    atom = display.intern_atom('EDID')
+    prop = display.xrandr_get_output_property(output, atom,
+            X.AnyPropertyType, 0, 128)
+    return bytes(prop.value)
 
 def get_outputs(display):
     """Get collection of display outputs
@@ -52,6 +103,7 @@ def get_outputs(display):
             'name': _data['name'],
             'connected': not _data['connection'],
             'dissabled': not _data['crtc'],
+            'edid': parse_edid(get_edid(display, output)),
             'x': x,
             'y': y
         });
@@ -78,6 +130,62 @@ def get_config(path):
         dict = json.loads(file.read())
         validate(dict, schema)
         return dict
+
+def output_matches_config(output, outputConf):
+    """returns True when the configuration entry describes the display output.
+    Entries with `edid` are matched by the monitor identification,
+    entries without it by the output name.
+    """
+    if 'edid' in outputConf:
+        return all(output['edid'].get(key) == value
+                for key, value in outputConf['edid'].items())
+    return outputConf.get('name') == output['name']
+
+def assign_output_configs(outputs, config):
+    """sets `conf` (configuration entry or {}) and `confIndex` of each
+    display output. A configuration entry is assigned to one output at most.
+    """
+    claimed = set()
+    for output in outputs:
+        output['conf'] = {}
+        output['confIndex'] = None
+        if not output['connected']:
+            continue
+        for index, outputConf in enumerate(config['outputs']):
+            if index not in claimed and output_matches_config(output, outputConf):
+                claimed.add(index)
+                output['conf'] = outputConf
+                output['confIndex'] = index
+                break
+
+def output_reference_matches(output, reference):
+    """returns True when `reference` is the output name or the model or serial
+    of the monitor connected to it
+    """
+    return reference in (output['name'],
+            output['edid']['model'], output['edid']['serial'])
+
+def resolve_xrandr_args(args, outputs):
+    """replaces `{reference}` arguments with the name of the connected display
+    output the reference points at (see output_reference_matches). An argument
+    whose reference is not connected is dropped together with the option
+    preceding it.
+    """
+    out = []
+    for arg in args:
+        match = re.fullmatch(r'\{(.+)\}', arg)
+        if not match:
+            out.append(arg)
+            continue
+        target = next(filter(lambda o: o['connected']
+            and output_reference_matches(o, match.group(1)), outputs), None)
+        if target is None:
+            logger('xrandr argument {0} does not match any connected display output, ignoring it'.format(arg))
+            if out:
+                out.pop()
+            continue
+        out.append(target['name'])
+    return out
 
 def difference(list, *lists):
     """construct a collection with values of first list argument which are not
@@ -139,9 +247,13 @@ def areDisplayOutputsCloned(outputs):
     :returns: boolean
 
     """
-    for index,output in enumerate(outputs):
+    enabledOutputs = list(filter(lambda output: (output['dissabled'] != True), outputs))
+    if len(enabledOutputs) <= 1:
+        return False
+
+    for index,output in enumerate(enabledOutputs):
         if index > 0:
-            if output['x'] != outputs[index-1]['x'] or output['y'] != outputs[index-1]['y']:
+            if output['x'] != enabledOutputs[index-1]['x'] or output['y'] != enabledOutputs[index-1]['y']:
                 return False
 
     return True
@@ -198,21 +310,20 @@ def main():
     #i3 multi command string which will bind workspaces to correct display outputs
     i3cmd = ''
 
+    assign_output_configs(outputs, config)
+
     for output in outputs:
-        outputConf = next(
-                filter(lambda o: o['name'] == output['name'], config['outputs']),
-                {}
-                )
+        outputConf = output['conf']
 
         if 'xrandr' in outputConf and isinstance(outputConf['xrandr'], list):
-            output['xrandr'] = outputConf['xrandr']
+            output['xrandr'] = resolve_xrandr_args(outputConf['xrandr'], outputs)
 
         if 'workspaces' in outputConf and isinstance(outputConf['workspaces'], list):
             output['workspaces'] = outputConf['workspaces']
         else:
             continue
 
-        index = config['outputs'].index(outputConf)
+        index = output['confIndex']
 
         if output['connected']:
             connectedOutputs.insert(index, output)
@@ -245,7 +356,7 @@ def main():
 
     for output in outputs:
         if (not output['connected']  or
-           (output['connected'] and not len(output['workspaces']) and config['disableEmptyOutputs'])):
+           (output['connected'] and not len(output.get('workspaces', [])) and config['disableEmptyOutputs'])):
             xrandr['disabled'] += ['--output', output['name'], '--off']
 
 
@@ -253,7 +364,7 @@ def main():
 
     if shellArgs.toggle:
         if len(connectedOutputs) > 1 and not areDisplayOutputsCloned(connectedOutputs):
-            args += xrandr['cloned'] + xrandr['disabled']
+            args += xrandr['cloned']
         elif len(connectedOutputs) > 1:
             args += xrandr['extended'] + xrandr['disabled']
     else:
@@ -279,11 +390,9 @@ def main():
         if not len(output['workspaces']):
             continue
 
-        outputConf = next(
-            filter(lambda o: o['name'] == output['name'], config['outputs']),
-            {}
-        )
-        activeWorkspace = activeWorkspaces[output['name']]
+        outputConf = output['conf']
+        # None when no workspace of the output has any window in it
+        activeWorkspace = activeWorkspaces.get(output['name'])
         visibleWorkspace = visibleWorkspaces.get(output['name'], activeWorkspace)
         # if the workspace should be in the current output
         # set it as the active workspace
@@ -291,7 +400,7 @@ def main():
             i3.command('workspace {0}'.format(visibleWorkspace))
         #else set as the active workspace first workspace which belongs to the output
         #and has any window in it
-        else:
+        elif activeWorkspace is not None:
             i3.command('workspace {0}'.format(activeWorkspace))
 
     i3.command('workspace {0}'.format(focusedWorkspace))
